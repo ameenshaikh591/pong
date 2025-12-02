@@ -1,3 +1,11 @@
+/*
+Author: Ameen Shaikh
+
+Driver file.
+
+Handles the bulk of game logic by implementing the FreeRTOS tasks.
+*/
+
 #include "spi_driver.h"
 #include "bluetooth.h"
 #include "game_types.h"
@@ -34,63 +42,59 @@ spi_task_params_t spi_task_params;
 
 void StartingObjectPosition(game_state_t* gs);
 
-/* ---------- SETUP / LOOP ---------- */
-
 void setup() {
-    Serial.begin(115200);
-    srand((unsigned)esp_random());
+  Serial.begin(115200);
+  srand((unsigned)esp_random());
 
-    SetupBluetooth();
-    SetupSPI();
+  SetupBluetooth();
+  SetupSPI();
 
-    xMutex = xSemaphoreCreateMutex();
+  xMutex = xSemaphoreCreateMutex();
 
-    // Read user input task params
-    user_input_task_params.game_state = &game_state;
-    user_input_task_params.user_input = &user_input;
-    user_input_task_params.game_mode = &current_mode;
-    user_input_task_params.start_req = &start_requested;
-    user_input_task_params.mutex = xMutex;
+  // Read user input task params
+  user_input_task_params.game_state = &game_state;
+  user_input_task_params.user_input = &user_input;
+  user_input_task_params.game_mode = &current_mode;
+  user_input_task_params.start_req = &start_requested;
+  user_input_task_params.mutex = xMutex;
 
-    // Game logic task params
-    game_logic_task_params.game_state = &game_state;
-    game_logic_task_params.game_mode = &current_mode;
-    game_logic_task_params.start_req = &start_requested;
-    game_logic_task_params.mutex = xMutex;
+  // Game logic task params
+  game_logic_task_params.game_state = &game_state;
+  game_logic_task_params.game_mode = &current_mode;
+  game_logic_task_params.start_req = &start_requested;
+  game_logic_task_params.mutex = xMutex;
 
-    // SPI task params
-    spi_task_params.game_state = &game_state;
-    spi_task_params.mutex = xMutex;
-    spi_task_params.spi_driver = vspi;
+  // SPI task params
+  spi_task_params.game_state = &game_state;
+  spi_task_params.mutex = xMutex;
+  spi_task_params.spi_driver = vspi;
 
-    xTaskCreate(
-      TaskReadUserInput,
-      "Read User Input",
-      2048,
-      (void*)&user_input_task_params,
-      MEDIUM_PRIORITY,
-      &read_user_input_task_h
-    );
+  xTaskCreate(
+    TaskReadUserInput,
+    "Read User Input",
+    2048,
+    (void*)&user_input_task_params,
+    MEDIUM_PRIORITY,
+    &read_user_input_task_h
+  );
 
-    xTaskCreate(
-      TaskGameLogic,
-      "Game Logic",
-      2048,
-      (void*)&game_logic_task_params,
-      MEDIUM_PRIORITY,
-      &game_logic_task_h
-    );
+  xTaskCreate(
+    TaskGameLogic,
+    "Game Logic",
+    2048,
+    (void*)&game_logic_task_params,
+    MEDIUM_PRIORITY,
+    &game_logic_task_h
+  );
 
-    xTaskCreate(
-      TaskSPI,
-      "SPI",
-      2048,
-      (void*)&spi_task_params,
-      MEDIUM_PRIORITY,
-      &spi_task_h
-    );
-
-    Serial.printf("Basic Multi Threading Arduino Example\n");
+  xTaskCreate(
+    TaskSPI,
+    "SPI",
+    2048,
+    (void*)&spi_task_params,
+    MEDIUM_PRIORITY,
+    &spi_task_h
+  );
 }
 
 void loop() {
@@ -129,8 +133,13 @@ void loop() {
 #define PADDLE_STARTING_Y 200
 
 
-// Read user input task
+/*
+Read User Input Task
 
+Samples the "user_input" variable, which tells what key the user is pressing
+
+Updates the paddle positions based on the pressed key
+*/
 void TaskReadUserInput(void *pvParameters) {
     user_input_task_params_t* p = (user_input_task_params_t*)pvParameters;
 
@@ -279,6 +288,18 @@ void PaddleCollision(ball_velocity_t* p_bv, const game_state_t* p_gs) {
   }
 }
 
+
+/*
+Game Logic Task
+
+1. Determines the current game state
+2. Updates the ball's position
+3. Handles the ball's collision with the borders or paddles
+4. Keep's track of each user's score
+5. Handles the event of a player winning a round
+
+These steps are repeated at 60 Hz
+*/
 void TaskGameLogic(void* pvParameters) {
   game_logic_task_params_t* p = (game_logic_task_params_t*)pvParameters;
 
@@ -442,8 +463,6 @@ void StartingObjectPosition(game_state_t* gs) {
   gs->paddle_r_y = PADDLE_STARTING_Y;
 }
 
-/* ---------- SPI TASK ---------- */
-
 #define SPI_TASK_DELAY_MS 16
 #define BYTES_PER_TRANSACTION 10
 #define BALL_LOWER_X 0
@@ -457,6 +476,12 @@ void StartingObjectPosition(game_state_t* gs) {
 #define SCORE_L 8
 #define SCORE_R 9
 
+
+/*
+SPI Task
+
+Sends the game state to the FPGA via SPI at 60 Hz
+*/
 void TaskSPI(void* pvParameters) {
   spi_task_params_t* p = (spi_task_params_t*)pvParameters;
   game_state_t local_copy;

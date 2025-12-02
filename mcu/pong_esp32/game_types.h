@@ -1,3 +1,9 @@
+/*
+Author: Ameen Shaikh
+
+Custom data types used primarily in "pong_esp32.ino".
+*/
+
 #pragma once
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
