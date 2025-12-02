@@ -10,11 +10,11 @@ User input is handled through a Python script running on a PC. The script detect
 
 The game logic on the ESP32 is structured using FreeRTOS, where I created three separate tasks:
 
-  •	Input Task: Reads Bluetooth input and updates the paddle positions.
+-	Input Task: Reads Bluetooth input and updates the paddle positions.
   
-  •	Game Logic Task: Updates the ball position, detects collisions, determines scoring events, and updates the     game state.
+-	Game Logic Task: Updates the ball position, detects collisions, determines scoring events, and updates the     game state.
   
-  •	SPI Transmission Task: Sends the ball, paddle, and score data to the FPGA via SPI.
+-	SPI Transmission Task: Sends the ball, paddle, and score data to the FPGA via SPI.
   
 These tasks are timed so the game operates at 60 FPS.
 
@@ -32,19 +32,19 @@ Another issue occurred in the Python input script. The library I used could not 
 
 The components used in this project were:
 
-  •	ESP32 microcontroller
+  -	ESP32 microcontroller
   
-  •	Breadboard
+  -	Breadboard
   
-  •	Three jumper wires
+  -	Three jumper wires
   
-  •	BASYS-3 FPGA board
+  -	BASYS-3 FPGA board
   
-  •	VGA cable
+  -	VGA cable
   
-  •	VGA-compatible monitor
+  -	VGA-compatible monitor
   
-  •	PC with Bluetooth capability
+  -	PC with Bluetooth capability
   
 The ESP32 is mounted on the breadboard, and the three jumper wires connect its SPI pins to GPIO pins on the BASYS-3. The BASYS-3 outputs VGA signals directly to the monitor. The PC runs the Python script that transmits user input over Bluetooth to the ESP32.
 
