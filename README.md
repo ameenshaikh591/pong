@@ -1,4 +1,5 @@
 **Pong Project**
+
 **Ameen Shaikh**
 
 **Project Overview**
@@ -8,9 +9,13 @@ For my project, I implemented a two-player version of the classic game Pong, whi
 User input is handled through a Python script running on a PC. The script detects key presses and transmits them to an ESP32 microcontroller over Bluetooth. One player uses the W/S keys while the other uses the Up/Down arrow keys. The ESP32 operates as a Bluetooth server that receives these inputs and runs the game logic.
 
 The game logic on the ESP32 is structured using FreeRTOS, where I created three separate tasks:
+
   •	Input Task: Reads Bluetooth input and updates the paddle positions.
+  
   •	Game Logic Task: Updates the ball position, detects collisions, determines scoring events, and updates the     game state.
+  
   •	SPI Transmission Task: Sends the ball, paddle, and score data to the FPGA via SPI.
+  
 These tasks are timed so the game operates at 60 FPS.
 
 The FPGA is responsible for graphics output. I implemented an SPI slave module on the FPGA to receive game-state data from the ESP32, and I designed a VGA synchronizer/renderer that draws all game objects (paddles, ball, scores) at 60 FPS on a connected monitor.
@@ -26,12 +31,19 @@ Another issue occurred in the Python input script. The library I used could not 
 **Project Components**
 
 The components used in this project were:
+
   •	ESP32 microcontroller
+  
   •	Breadboard
+  
   •	Three jumper wires
+  
   •	BASYS-3 FPGA board
+  
   •	VGA cable
+  
   •	VGA-compatible monitor
+  
   •	PC with Bluetooth capability
   
 The ESP32 is mounted on the breadboard, and the three jumper wires connect its SPI pins to GPIO pins on the BASYS-3. The BASYS-3 outputs VGA signals directly to the monitor. The PC runs the Python script that transmits user input over Bluetooth to the ESP32.
